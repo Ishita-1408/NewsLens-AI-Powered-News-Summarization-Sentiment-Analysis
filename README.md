@@ -287,6 +287,12 @@ Then deploy on Streamlit Cloud (free) or any cloud VM with Docker.
 
 ---
 
+## Author
+
+**Ishita**
+
+---
+
 ## 📜 License
 
 MIT — free to use, modify, and deploy.
