@@ -293,4 +293,3 @@ MIT — free to use, modify, and deploy.
 
 ---
 
-*Inspired by [hengluchang/deep-news-summarization](https://github.com/hengluchang/deep-news-summarization) — rebuilt with modern 2025 stack.*
