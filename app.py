@@ -105,7 +105,8 @@ with st.sidebar:
     st.divider()
     st.markdown("### 🤖 Model")
     model_name = st.selectbox("Summarization model", list(MODELS.keys()),
-                              format_func=lambda x: MODELS[x])
+                          index=1,   # ← defaults to DistilBART
+                          format_func=lambda x: MODELS[x])
     st.markdown("### 📏 Output Length")
     max_len = st.slider("Max tokens", 60, 300, 130, 10)
     min_len = st.slider("Min tokens", 10, 100, 30, 5)
