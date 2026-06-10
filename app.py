@@ -14,7 +14,7 @@ from keywords  import extract_keywords
 from sentiment import analyze_sentiment, EMOJI_MAP, COLOR_MAP
 
 # ── Page config ───────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Deep News Summarizer", page_icon="📰",
+st.set_page_config(page_title="NewsLens", page_icon="📰",
                    layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
@@ -126,7 +126,7 @@ with st.sidebar:
         st.warning("🟡 CPU")
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.markdown('<div class="hero">📰 Deep News Summarizer</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero">📰 NewsLens</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub">End-to-end pipeline: Scrape → Clean → BART → Keywords → Sentiment → Dashboard</div>', unsafe_allow_html=True)
 STAGES = ["🔗 URL Input","🕷 Scraper","🧹 Cleaner","🤖 BART","🔑 Keywords","💬 Sentiment","📊 Dashboard"]
 st.markdown("<div style='margin-bottom:18px;line-height:2.4'>"+" <span style='color:#2d3258'>→</span> ".join(STAGES)+"</div>", unsafe_allow_html=True)
