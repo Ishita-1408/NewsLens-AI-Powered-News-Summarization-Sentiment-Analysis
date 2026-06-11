@@ -105,8 +105,15 @@ with st.sidebar:
     st.divider()
     st.markdown("### 🤖 Model")
     model_name = st.selectbox("Summarization model", list(MODELS.keys()),
-                          index=1,   # ← defaults to DistilBART
-                          format_func=lambda x: MODELS[x])
+                          index=0,
+                          format_func=lambda x: MODELS[x]["label"])
+
+    if model_name != "sshleifer/distilbart-cnn-12-6":
+        st.warning(
+        "⚠️ This model requires >1 GB RAM and may crash on "
+        "Streamlit Cloud. It works fine locally with GPU. "
+        "Switch to **DistilBART** for cloud deployment."
+    )
     st.markdown("### 📏 Output Length")
     max_len = st.slider("Max tokens", 60, 300, 130, 10)
     min_len = st.slider("Min tokens", 10, 100, 30, 5)
