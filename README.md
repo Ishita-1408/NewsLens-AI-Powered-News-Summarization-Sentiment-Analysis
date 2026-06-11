@@ -1,35 +1,41 @@
-# 📰 Deep News Summarizer
+# 📰 NewsLens — AI-Powered News Summarization & Analysis
 
-> End-to-end NLP pipeline that takes any news article URL or pasted text and produces an abstractive summary, top keywords, and sentiment analysis — all in an interactive dashboard.
+> End-to-end NLP pipeline: paste any news URL → get an abstractive summary, semantic keywords, and per-sentence sentiment analysis in an interactive dashboard.
+
+🔗 **Live Demo:** [newslens-ai-powered-news-summarization-sentiment-analysis-azsx.streamlit.app](https://newslens-ai-powered-news-summarization-sentiment-analysis-azsx.streamlit.app)
 
 ![Pipeline Architecture](pipeline_final.png)
 
 ---
 
-## ✨ Features
+## ✨ What It Does
 
-- 🤖 **Abstractive Summarization** — BART generates new sentences, not just extracts
-- 🔑 **Semantic Keywords** — KeyBERT scores keyphrases by relevance using sentence embeddings
-- 💬 **Sentiment Analysis** — RoBERTa scores every sentence individually (Positive / Neutral / Negative)
-- 📊 **Interactive Dashboard** — Plotly charts, donut graphs, KPI metrics
-- 🗞️ **Auto Scraper** — extracts title, author, publish date, top image from any news URL
-- ⚡ **GPU Accelerated** — auto-detects CUDA, runs in fp16 for ~2s per article
-- 🔄 **Auto Chunking** — handles articles of any length by splitting and merging
-- 🐳 **Docker Ready** — runs on any system with one command
+Paste a news article URL or text → click **Run Full Pipeline** → get:
 
----
-
-## 📊 Performance
-
-| Model | Size | Avg Compression | GPU Speed | CPU Speed |
-|---|---|---|---|---|
-| `facebook/bart-large-cnn` | 1.6 GB | ~70% | ~2s | ~18s |
-| `sshleifer/distilbart-cnn-12-6` | 900 MB | ~68% | ~1s | ~10s |
-| `google/pegasus-cnn_dailymail` | 2.2 GB | ~72% | ~3s | ~25s |
+| Output | Detail |
+|---|---|
+| 📝 **Abstractive Summary** | BART generates new sentences, not just extracts |
+| 🔑 **Top Keywords** | KeyBERT semantic scoring + bar chart |
+| 💬 **Sentiment Score** | RoBERTa — Positive / Neutral / Negative with confidence % |
+| 🔍 **Per-Sentence Breakdown** | Every sentence scored individually |
+| 🗞️ **Article Metadata** | Title, author, publish date, top image |
+| ⏱️ **Pipeline Timings** | Time taken at each stage |
 
 ---
 
-## 🏗️ Pipeline
+## 📊 Model Performance
+
+| Model | Size | Avg Compression | GPU Speed | CPU Speed | Cloud |
+|---|---|---|---|---|---|
+| `facebook/bart-large-cnn` | 1.6 GB | ~70% | ~2s | ~18s | ⚠️ Out of memory |
+| `sshleifer/distilbart-cnn-12-6` | 900 MB | ~68% | ~1s | ~10s | ✅ Recommended |
+| `google/pegasus-cnn_dailymail` | 2.2 GB | ~72% | ~3s | ~25s | ⚠️ Out of memory |
+
+> ⚠️ Streamlit Cloud has 1 GB RAM — use **DistilBART** for cloud deployment. BART-large and PEGASUS work locally with GPU.
+
+---
+
+## 🏗️ Pipeline Architecture
 
 ```
 News URL / Pasted Text
@@ -37,55 +43,82 @@ News URL / Pasted Text
         ▼
 ┌───────────────┐
 │    Scraper    │  newspaper4k → title, author, date, image, text
-│  + BS4 fallbk │
+│  BS4 fallback │
+└───────┬───────┘
+        │ Clean text
+        ▼
+┌───────────────┐
+│ Text Cleaner  │  Strip ads, normalize whitespace, fix quotes
 └───────┬───────┘
         │
         ▼
 ┌───────────────┐
-│ Text Cleaner  │  strip ads, normalize whitespace, fix quotes
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐
-│     BART      │  model.generate() — no pipeline() — GPU fp16
-│  Summarizer   │  auto-chunks long articles
+│     BART      │  model.generate() — GPU fp16 — auto-chunks long docs
+│  Summarizer   │
 └───────┬───────┘
         │
    ┌────┴────┐
    ▼         ▼
-┌──────┐  ┌──────────┐
-│KeyBERT│  │ RoBERTa  │
-│  KW  │  │Sentiment │
-└──────┘  └──────────┘
-   │           │
-   └─────┬─────┘
-         ▼
-┌─────────────────┐
-│   Streamlit     │  Summary · Keywords · Sentiment · Timings · History
-│   Dashboard     │
-└─────────────────┘
+┌────────┐ ┌──────────┐
+│KeyBERT │ │ RoBERTa  │
+│Keywords│ │Sentiment │
+└────────┘ └──────────┘
+      │         │
+      └────┬────┘
+           ▼
+  ┌─────────────────┐
+  │   Streamlit     │  Summary · Keywords · Sentiment · Timings
+  │   Dashboard     │
+  └─────────────────┘
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 How to Use the App
 
-Choose **one** of the three methods below.
+### Using the Live Demo
+
+1. Open the **[live app](https://newslens-ai-powered-news-summarization-sentiment-analysis-azsx.streamlit.app)**
+2. **Select DistilBART** from the model dropdown (recommended for Cloud)
+3. Either:
+   - Paste a news URL in the input box, **or**
+   - Toggle **✍️ Paste article text** and paste the article directly
+4. Click **🚀 Run Full Pipeline**
+5. Scroll down to see the full dashboard
+
+> 💡 **Tip:** If a URL fails to scrape (some sites block bots), use the paste toggle instead.
 
 ---
 
-### Method 1 — Run Locally (Python)
+### Sidebar Controls
 
-**Requirements:** Python 3.10+, Git
+| Control | What it does | Recommended |
+|---|---|---|
+| **Model** | Switch summarization model | DistilBART on Cloud, BART locally |
+| **Max tokens** | Max length of summary | 130 |
+| **Min tokens** | Prevents too-short summaries | 30 |
+| **Beam width** | Higher = better quality, slower | 4 |
+| **Length penalty** | >1 = longer, <1 = shorter | 1.0 |
+| **No-repeat n-gram** | Prevents repetition | 3 |
+| **Keywords** | How many keyphrases to extract | 10 |
+| **KeyBERT toggle** | Semantic vs TF-IDF extraction | On locally, Off on Cloud |
 
-#### Step 1 — Clone the repo
+---
+
+## 🛠️ Run Locally
+
+### Requirements
+- Python 3.10+
+- NVIDIA GPU recommended (CPU works, slower)
+
+### Step 1 — Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/news-summarizer.git
-cd news-summarizer
+git clone https://github.com/Ishita-1408/NewsLens-AI-Powered-News-Summarization-Sentiment-Analysis.git
+cd NewsLens-AI-Powered-News-Summarization-Sentiment-Analysis
 ```
 
-#### Step 2 — Create a virtual environment
+### Step 2 — Virtual environment
 
 ```bash
 # Windows
@@ -97,161 +130,85 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-You should see `(venv)` at the start of your terminal prompt.
+### Step 3 — Install PyTorch
 
-#### Step 3 — Install PyTorch
-
-**Windows / Linux with NVIDIA GPU (recommended):**
-
-First check your CUDA version:
-```bash
-nvidia-smi
-```
-Look for `CUDA Version: XX.X` in the top-right corner.
+Check your CUDA version first: `nvidia-smi`
 
 ```bash
-# CUDA 12.1 (most common)
+# CUDA 12.1
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # CUDA 11.8
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
 
-**Mac or CPU-only:**
-```bash
+# CPU only / Mac
 pip install torch torchvision torchaudio
 ```
 
-Verify:
-```bash
-python -c "import torch; print('GPU:', torch.cuda.is_available())"
-```
-
-#### Step 4 — Install dependencies
+### Step 4 — Install dependencies
 
 ```bash
 pip install --only-binary=:all: transformers accelerate sentencepiece protobuf
-pip install newspaper4k beautifulsoup4 requests lxml
-pip install keybert sentence-transformers textblob plotly streamlit
-```
-
-One-time language data download for TextBlob:
-```bash
+pip install newspaper4k beautifulsoup4 requests lxml keybert sentence-transformers textblob plotly streamlit
 python -m textblob.download_corpora
 ```
 
-#### Step 5 — Run
+### Step 5 — Run
 
 ```bash
 streamlit run app.py
 ```
 
-Open **http://localhost:8501** in your browser.
+Open **http://localhost:8501**
 
-> ⏳ **First run:** downloads ~2.5 GB of models (BART + RoBERTa + MiniLM). Cached permanently after that — next runs start in seconds.
-
----
-
-### Method 2 — Docker (No Python needed)
-
-**Requirements:** [Docker Desktop](https://www.docker.com/products/docker-desktop)
-
-#### Step 1 — Clone the repo
-
-```bash
-git clone https://github.com/YOUR_USERNAME/news-summarizer.git
-cd news-summarizer
-```
-
-#### Step 2 — Build the image
-
-```bash
-docker build -t news-summarizer .
-```
-
-> ⏳ First build takes ~5–10 min (downloads Python, dependencies, and DistilBART model).
-
-#### Step 3 — Run
-
-```bash
-# CPU
-docker run -p 8501:8501 news-summarizer
-
-# With NVIDIA GPU
-docker run --gpus all -p 8501:8501 news-summarizer
-```
-
-Open **http://localhost:8501** in your browser.
-
-#### Stop the container
-
-```bash
-docker ps                          # find container ID
-docker stop <container_id>
-```
+> ⏳ First run downloads ~2.5 GB of models. Cached permanently after that.
 
 ---
 
-### Method 3 — Streamlit Cloud (No install, runs in browser)
+## 🐳 Docker
 
-1. Go to **https://share.streamlit.io**
-2. Sign in with GitHub
-3. Click **New app**
-4. Select: Repository → `YOUR_USERNAME/news-summarizer` · Branch → `main` · File → `app.py`
-5. Click **Deploy**
+```bash
+docker build -t newslens .
+docker run -p 8501:8501 newslens
 
-You get a public URL like:
-```
-https://yourname-news-summarizer-xxxx.streamlit.app
+# With GPU
+docker run --gpus all -p 8501:8501 newslens
 ```
 
-> ⚠️ Streamlit Cloud is **CPU only**. Switch to **DistilBART** in the sidebar for faster inference (~10s per article).
+Open **http://localhost:8501**
 
 ---
 
 ## 📁 Project Structure
 
 ```
-news-summarizer/
-├── app.py                  # Streamlit dashboard + pipeline orchestrator
-├── scraper.py              # Stage 2: URL scraping & text cleaning
-├── summarizer.py           # Stage 3: BART direct inference (model.generate)
-├── keywords.py             # Stage 4: KeyBERT / TF-IDF keyword extraction
-├── sentiment.py            # Stage 5: RoBERTa sentiment analysis
-├── requirements.txt        # Python dependencies
-├── Dockerfile              # Container definition
+NewsLens/
+├── app.py              # Streamlit dashboard + pipeline orchestrator
+├── scraper.py          # Stage 2: URL scraping & text cleaning
+├── summarizer.py       # Stage 3: BART direct inference (no pipeline())
+├── keywords.py         # Stage 4: KeyBERT / TF-IDF keyword extraction
+├── sentiment.py        # Stage 5: RoBERTa sentiment analysis
+├── requirements.txt    # Python dependencies
+├── packages.txt        # System dependencies for Streamlit Cloud
+├── Dockerfile
 ├── .dockerignore
-├── pipeline_final.png      # Architecture diagram
+├── pipeline_final.png  # Architecture diagram
 ├── .streamlit/
-│   └── config.toml         # Dark theme
+│   └── config.toml     # Dark theme
 └── README.md
 ```
 
 ---
 
-## ⚙️ Sidebar Controls
-
-| Setting | What it does |
-|---|---|
-| **Model** | Switch between BART-large, DistilBART, PEGASUS |
-| **Max tokens** | Maximum length of generated summary |
-| **Min tokens** | Prevents summary from being too short |
-| **Beam width** | Higher = better quality, slower (4 is default) |
-| **Length penalty** | >1 favours longer summaries, <1 shorter |
-| **No-repeat n-gram** | Prevents repetitive phrases in summary |
-| **Keywords** | Number of keyphrases to extract (5–20) |
-| **KeyBERT toggle** | Semantic extraction vs fast TF-IDF fallback |
-
----
-
 ## 🔧 Tech Stack
 
-| Component | Library |
+| Component | Technology |
 |---|---|
-| Web framework | Streamlit >= 1.35 |
-| Summarization | Hugging Face Transformers 5.x (BART / PEGASUS) |
+| Web framework | Streamlit |
+| Summarization | facebook/bart-large-cnn, DistilBART, PEGASUS |
 | Deep learning | PyTorch 2.x |
-| Scraping | newspaper4k, BeautifulSoup4 |
+| NLP library | Hugging Face Transformers 5.x |
+| Scraping | newspaper4k + BeautifulSoup4 |
 | Keywords | KeyBERT + sentence-transformers |
 | Sentiment | cardiffnlp/twitter-roberta-base-sentiment |
 | Charts | Plotly |
@@ -259,43 +216,26 @@ news-summarizer/
 
 ---
 
-## 🐛 Common Issues
+## 🐛 Common Issues & Fixes
 
 | Error | Fix |
 |---|---|
 | `ModuleNotFoundError: plotly` | `pip install plotly` |
 | `Neither newspaper4k nor beautifulsoup4 installed` | `pip install newspaper4k beautifulsoup4` |
-| `Unknown task summarization` | You have the old `app.py` — re-clone or replace it |
-| Scraper error on a URL | Use the **✍️ Paste text** toggle instead |
-| Out of GPU memory | Switch to DistilBART or set beam width to 1–2 |
+| `Unknown task summarization` | Replace `app.py` with latest version from repo |
+| Scraper fails on a URL | Toggle **✍️ Paste article text** and paste manually |
+| App stuck on "Extracting keywords…" | Disable KeyBERT toggle in sidebar (uses TF-IDF instead) |
+| Out of memory on Cloud | Switch to DistilBART model |
+| Out of GPU memory locally | Set beam width to 1–2 or switch to DistilBART |
 
 ---
 
-## ☁️ Deploy Your Own
+## 👩‍💻 Author
 
-```bash
-# Push to GitHub
-git init
-git add .
-git commit -m "initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/news-summarizer.git
-git branch -M main
-git push -u origin main
-```
-
-Then deploy on Streamlit Cloud (free) or any cloud VM with Docker.
-
----
-
-## Author
-
-**Ishita**
+**Ishita** 
 
 ---
 
 ## 📜 License
 
 MIT — free to use, modify, and deploy.
-
----
-
