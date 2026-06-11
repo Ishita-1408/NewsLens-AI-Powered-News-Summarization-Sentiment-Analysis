@@ -3,6 +3,7 @@ Stage 3: BART Summarizer
 Uses direct model inference — no pipeline() call.
 Works with all transformers versions including 5.x
 """
+import gc
 import torch
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -16,9 +17,13 @@ MODELS = {
 
 @st.cache_resource(show_spinner=False)
 def load_summarizer(model_name: str):
-    dtype  = torch.float16 if torch.cuda.is_available() else torch.float32
+    dtype     = torch.float16 if torch.cuda.is_available() else torch.float32
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model     = AutoModelForSeq2SeqLM.from_pretrained(model_name, torch_dtype=dtype)
+    model     = AutoModelForSeq2SeqLM.from_pretrained(
+        model_name,
+        dtype=dtype,
+        low_cpu_mem_usage=True,
+    )
     if torch.cuda.is_available():
         model = model.cuda()
     model.eval()
@@ -109,8 +114,13 @@ def summarize(
             no_repeat_ngram_size=no_repeat_ngram_size,
         )
 
+    # Free memory after inference
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
     return {
-        "summary":            combined,
-        "chunks_processed":   len(chunks),
-        "summary_word_count": len(combined.split()),
+        "summary": combined,
+        "chunks":  len(chunks),
+        "words":   len(combined.split()),
     }
