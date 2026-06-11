@@ -186,7 +186,7 @@ if run_btn:
     # Stage 3 — BART (direct model.generate)
     prog.progress(35, "🤖 Running BART…")
     t0 = time.time()
-    with st.spinner(f"Summarizing with {MODELS[model_name]}…"):
+    with st.spinner(f"Summarizing with {MODELS[model_name]["label"]}…"):
         summ = do_summarize(art.clean_text, model_name,
                             max_len, min_len, num_beams,
                             length_penalty, no_repeat_ngram)
