@@ -37,9 +37,9 @@ hr{border-color:#1e2240!important}
 
 # ── Models ────────────────────────────────────────────────────────────────────
 MODELS = {
-    "facebook/bart-large-cnn":       "BART-large-CNN (best quality)",
-    "sshleifer/distilbart-cnn-12-6": "DistilBART (faster)",
-    "google/pegasus-cnn_dailymail":  "PEGASUS (alternative)",
+    "facebook/bart-large-cnn":       {"label": "BART-large-CNN (best quality)"},
+    "sshleifer/distilbart-cnn-12-6": {"label": "DistilBART (faster)"},
+    "google/pegasus-cnn_dailymail":  {"label": "PEGASUS (alternative)"},
 }
 
 # ── Load model — NO pipeline() call ──────────────────────────────────────────
